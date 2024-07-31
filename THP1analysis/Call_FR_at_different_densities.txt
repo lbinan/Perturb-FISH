@@ -1,0 +1,41 @@
+_=os.system('python ./cleanrun_FR_PerturbnoNorm.py --input-h5ad %s/count_data6cells.h5ad --input-perturbation-matrix %s/perturbation_design6cells.csv --control-perturbation-name Control --out %s/effectsfrom6cells --covariates %s --compute-pval --num-perms %d --rank %d --lambda1 0.0 --lambda2 0.0' % ('zombie_sample2','zombie_sample2','zombie_sample2','total_counts',10000,34))
+
+
+./cleanrun_FR_PerturbnoNorm.py --input-h5ad /broad/clearylab/Users/Loic/thp1homemadezombie_1/moreFRtests/test50again.h5ad --input-perturbation-matrix /broad/clearylab/Users/Loic/thp1homemadezombie_1/moreFRtests/zombie50.txt --control-perturbation-name control  --multithreaded --compute-pval --fit-zero-pval --rank=10 --out /broad/clearylab/Users/Loic/thp1homemadezombie_1/moreFRtests/shuffled50cells
+
+P = pd.read_csv('/broad/clearylab/Users/Loic/thp1homemadezombie_1/downsampling10_30/zombie6.csv', index_col=0) # target x cells
+P.to_csv('/broad/clearylab/Users/Loic/thp1homemadezombie_1/downsampling10_30/perturbation_design_6cells.csv',sep=' ')
+
+M = pd.read_csv('/broad/clearylab/Users/Loic/thp1homemadezombie_1/downsampling10_30/test6again.csv') # cells x genes
+adata = ad.AnnData(M)
+adata.obs_names = [f"Cell_{i+1:d}" for i in range(adata.n_obs)]
+adata.obs['total_counts'] = adata.X.sum(1)
+adata.write('/broad/clearylab/Users/Loic/thp1homemadezombie_1/downsampling10_30/count_data_6cells.h5ad')
+
+
+P = pd.read_csv('/broad/clearylab/Users/Loic/thp1homemadezombie_1/downsampling10_30/zombievalidation.csv', index_col=0) # target x cells
+P.to_csv('/broad/clearylab/Users/Loic/thp1homemadezombie_1/downsampling10_30/perturbation_design_validationcells.csv',sep=' ')
+
+M = pd.read_csv('/broad/clearylab/Users/Loic/thp1homemadezombie_1/downsampling10_30/validationagain.csv') # cells x genes
+adata = ad.AnnData(M)
+adata.obs_names = [f"Cell_{i+1:d}" for i in range(adata.n_obs)]
+adata.obs['total_counts'] = adata.X.sum(1)
+adata.write('/broad/clearylab/Users/Loic/thp1homemadezombie_1/downsampling10_30/count_data_validationcells.h5ad')
+
+
+
+dir='/broad/clearylab/Users/Loic/thp1homemadezombie_1/downsampling10_30'
+
+
+
+_=os.system('python ./cleanrun_FR_PerturbnoNorm.py --input-h5ad %s/count_data_6cells.h5ad --input-perturbation-matrix %s/perturbation_design_6cells.csv --control-perturbation-name control --out %s/effectsfrom6cells --covariates %s --compute-pval --num-perms %d --rank %d --lambda1 0.0 --lambda2 0.0' % (dir,dir,dir,'total_counts',10000,34))
+_=os.system('python ./cleanrun_FR_PerturbnoNorm.py --input-h5ad %s/count_data_12cells.h5ad --input-perturbation-matrix %s/perturbation_design_12cells.csv --control-perturbation-name control --out %s/effectsfrom12cells --covariates %s --compute-pval --num-perms %d --rank %d --lambda1 0.0 --lambda2 0.0' % (dir,dir,dir,'total_counts',10000,34))
+_=os.system('python ./cleanrun_FR_PerturbnoNorm.py --input-h5ad %s/count_data_23cells.h5ad --input-perturbation-matrix %s/perturbation_design_23cells.csv --control-perturbation-name control --out %s/effectsfrom23cells --covariates %s --compute-pval --num-perms %d --rank %d --lambda1 0.0 --lambda2 0.0' % (dir,dir,dir,'total_counts',10000,34))
+_=os.system('python ./cleanrun_FR_PerturbnoNorm.py --input-h5ad %s/count_data_30cells.h5ad --input-perturbation-matrix %s/perturbation_design_30cells.csv --control-perturbation-name control --out %s/effectsfrom30cells --covariates %s --compute-pval --num-perms %d --rank %d --lambda1 0.0 --lambda2 0.0' % (dir,dir,dir,'total_counts',10000,34))
+_=os.system('python ./cleanrun_FR_PerturbnoNorm.py --input-h5ad %s/count_data_40cells.h5ad --input-perturbation-matrix %s/perturbation_design_40cells.csv --control-perturbation-name control --out %s/effectsfrom40cells --covariates %s --compute-pval --num-perms %d --rank %d --lambda1 0.0 --lambda2 0.0' % (dir,dir,dir,'total_counts',10000,34))
+_=os.system('python ./cleanrun_FR_PerturbnoNorm.py --input-h5ad %s/count_data_50cells.h5ad --input-perturbation-matrix %s/perturbation_design_50cells.csv --control-perturbation-name control --out %s/effectsfrom50cells --covariates %s --compute-pval --num-perms %d --rank %d --lambda1 0.0 --lambda2 0.0' % (dir,dir,dir,'total_counts',10000,34))
+_=os.system('python ./cleanrun_FR_PerturbnoNorm.py --input-h5ad %s/count_data_validationcells.h5ad --input-perturbation-matrix %s/perturbation_design_validationcells.csv --control-perturbation-name control --out %s/effectsfromvalidationcells --covariates %s --compute-pval --num-perms %d --rank %d --lambda1 0.0 --lambda2 0.0' % (dir,dir,dir,'total_counts',10000,34))
+
+
+
+_=os.system('python ./cleanrun_FR_PerturbnoNorm.py --input-h5ad %s/count_data.h5ad --input-perturbation-matrix %s/perturbation_design.csv --control-perturbation-name Control --out %s/effectsfromallcellsalltargets --covariates %s --compute-pval --num-perms %d --rank %d --lambda1 0.0 --lambda2 0.0' % (dir,dir,dir,'total_counts',10000,34))
