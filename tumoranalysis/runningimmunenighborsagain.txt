@@ -1,0 +1,41 @@
+import numpy as np
+import pandas as pd
+import anndata as ad
+from matplotlib import pyplot as plt
+from scipy.spatial import distance
+import os
+from collections import defaultdict
+import seaborn as sns
+from scipy.stats import ranksums
+from scipy.cluster import hierarchy 
+
+M = pd.read_csv('tryimmuneneighborsagain/merfishwithneighbor.csv') # cells x genes
+P = pd.read_csv('tryimmuneneighborsagain/zombiewithneighbor.csv', index_col=0) # target x cells
+
+adata = ad.AnnData(M)
+adata.obs_names = [f"Cell_{i+1:d}" for i in range(adata.n_obs)]
+adata.obs['total_counts'] = adata.X.sum(1)
+adata.write('tryimmuneneighborsagain/count_data.h5ad')
+
+P.to_csv('tryimmuneneighborsagain/perturbation_design.csv',sep=' ')
+rank=26
+lambda1=0.6
+lambda2=2
+
+_=os.system('python ./run_FR_PerturbnoNorm2.py --input-h5ad tryimmuneneighborsagain/count_data.h5ad --input-perturbation-matrix tryimmuneneighborsagain/perturbation_design.csv --control-perturbation-name Control --out tryimmuneneighborsagain/withneighbor --covariates total_counts --compute-pval --num-perms 10000 --rank 26 --lambda1 0.6 --lambda2 2')
+
+
+M = pd.read_csv('tryimmuneneighborsagain/merfishwithoutneighbor.csv') # cells x genes
+P = pd.read_csv('tryimmuneneighborsagain/zombiewithoutneighbor.csv', index_col=0) # target x cells
+
+adata = ad.AnnData(M)
+adata.obs_names = [f"Cell_{i+1:d}" for i in range(adata.n_obs)]
+adata.obs['total_counts'] = adata.X.sum(1)
+adata.write('tryimmuneneighborsagain/count_data.h5ad')
+
+P.to_csv('tryimmuneneighborsagain/perturbation_design.csv',sep=' ')
+rank=26
+lambda1=0.6
+lambda2=2
+
+_=os.system('python ./run_FR_PerturbnoNorm2.py --input-h5ad tryimmuneneighborsagain/count_data.h5ad --input-perturbation-matrix tryimmuneneighborsagain/perturbation_design.csv --control-perturbation-name Control --out tryimmuneneighborsagain/withOUTneighbor --covariates total_counts --compute-pval --num-perms 10000 --rank 26 --lambda1 0.6 --lambda2 2')

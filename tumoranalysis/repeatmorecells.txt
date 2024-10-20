@@ -1,0 +1,246 @@
+import numpy as np
+import pandas as pd
+import anndata as ad
+from matplotlib import pyplot as plt
+from scipy.spatial import distance
+import os
+from collections import defaultdict
+import seaborn as sns
+from scipy.stats import ranksums
+from scipy.cluster import hierarchy 
+
+
+M = pd.read_csv('repeatMoreCells/perturbedMerfish.csv') # cells x genes
+P = pd.read_csv('repeatMoreCells/perturbedpooledZombie.csv', index_col=0) # target x cells
+
+adata = ad.AnnData(M)
+adata.obs_names = [f"Cell_{i+1:d}" for i in range(adata.n_obs)]
+adata.obs['total_counts'] = adata.X.sum(1)
+adata.write('repeatMoreCells/count_data.h5ad')
+
+P.to_csv('repeatMoreCells/perturbation_design.csv',sep=' ')
+rank=26
+lambda1=0.6
+lambda2=2
+
+_=os.system('python ./run_FR_PerturbnoNorm2.py --input-h5ad repeatMoreCells/count_data.h5ad --input-perturbation-matrix repeatMoreCells/perturbation_design.csv --control-perturbation-name Control --out repeatMoreCells/repeatMoreCellsNormal --covariates total_counts --compute-pval --num-perms 10000 --rank 26 --lambda1 0.6 --lambda2 2')
+
+
+
+
+M = pd.read_csv('repeatMoreCells/immuneneighborMerfish.csv') # cells x genes
+P = pd.read_csv('repeatMoreCells/immuneneighborzombie.csv', index_col=0) # target x cells
+
+adata = ad.AnnData(M)
+adata.obs_names = [f"Cell_{i+1:d}" for i in range(adata.n_obs)]
+adata.obs['total_counts'] = adata.X.sum(1)
+adata.write('repeatMoreCells/count_data.h5ad')
+
+P.to_csv('repeatMoreCells/perturbation_design.csv',sep=' ')
+rank=26
+lambda1=0.6
+lambda2=2
+
+_=os.system('python ./run_FR_PerturbnoNorm2.py --input-h5ad repeatMoreCells/count_data.h5ad --input-perturbation-matrix repeatMoreCells/perturbation_design.csv --control-perturbation-name Control --out repeatMoreCells/withimmuneneighbor --covariates total_counts --compute-pval --num-perms 10000 --rank 26 --lambda1 0.6 --lambda2 2')
+
+
+M = pd.read_csv('repeatMoreCells/notimmuneneighborMerfish.csv') # cells x genes
+P = pd.read_csv('repeatMoreCells/notimmuneneighborzombie.csv', index_col=0) # target x cells
+
+adata = ad.AnnData(M)
+adata.obs_names = [f"Cell_{i+1:d}" for i in range(adata.n_obs)]
+adata.obs['total_counts'] = adata.X.sum(1)
+adata.write('repeatMoreCells/count_data.h5ad')
+
+P.to_csv('repeatMoreCells/perturbation_design.csv',sep=' ')
+rank=26
+lambda1=0.6
+lambda2=2
+
+_=os.system('python ./run_FR_PerturbnoNorm2.py --input-h5ad repeatMoreCells/count_data.h5ad --input-perturbation-matrix repeatMoreCells/perturbation_design.csv --control-perturbation-name Control --out repeatMoreCells/withOUTimmuneneighbor --covariates total_counts --compute-pval --num-perms 10000 --rank 26 --lambda1 0.6 --lambda2 2')
+
+
+
+M = pd.read_csv('repeatMoreCells/perturbedtcellsmerfishenoughguides.csv') # cells x genes
+P = pd.read_csv('repeatMoreCells/perturbedTcellsZombieenoughguides.csv', index_col=0) # target x cells
+
+adata = ad.AnnData(M)
+adata.obs_names = [f"Cell_{i+1:d}" for i in range(adata.n_obs)]
+adata.obs['total_counts'] = adata.X.sum(1)
+adata.write('repeatMoreCells/count_data.h5ad')
+
+P.to_csv('repeatMoreCells/perturbation_design.csv',sep=' ')
+rank=26
+lambda1=0.6
+lambda2=2
+
+_=os.system('python ./run_FR_PerturbnoNorm2.py --input-h5ad repeatMoreCells/count_data.h5ad --input-perturbation-matrix repeatMoreCells/perturbation_design.csv --control-perturbation-name Control --out repeatMoreCells/centeronTcellsenouguides --covariates total_counts --compute-pval --num-perms 10000 --rank 20 --lambda1 0.1 --lambda2 0.0')
+
+
+
+def write_data_subset_nocovs(idx,path):
+	adata = ad.AnnData(M.iloc[idx])
+	adata.obs_names = [f"Cell_{i+1:d}" for i in idx]
+	adata.obs['total_counts'] = adata.X.sum(1)
+	adata.write('%scount_data.h5ad' % path)
+	P.iloc[:,idx].to_csv('%sperturbation_design.csv' % path,sep=' ')
+
+M = pd.read_csv('repeatMoreCells/perturbedMerfish.csv') # cells x genes
+P = pd.read_csv('repeatMoreCells/perturbedpooledZombie.csv', index_col=0) # target x cells
+adata = ad.AnnData(M)
+adata.obs_names = [f"Cell_{i+1:d}" for i in range(adata.n_obs)]
+adata.obs['total_counts'] = adata.X.sum(1)
+adata.write('repeatMoreCells/count_data.h5ad')
+num_cells = M.shape[0]
+idx_sort = np.argsort(np.random.random(num_cells))
+idx1 = idx_sort[:int(num_cells/2)]
+dir="repeatMoreCells"
+idx2 = idx_sort[len(idx1):]
+write_data_subset_nocovs(idx1,'%s/split1_' % dir)
+write_data_subset_nocovs(idx2,'%s/split2_' % dir)
+_=os.system('python ./run_FR_PerturbnoNorm2.py --input-h5ad repeatMoreCells/split1_count_data.h5ad --input-perturbation-matrix repeatMoreCells/split1_perturbation_design.csv --control-perturbation-name Control --out repeatMoreCells/split1normal --covariates total_counts --compute-pval --num-perms 10000 --rank 26 --lambda1 0.6 --lambda2 2.0')
+_=os.system('python ./run_FR_PerturbnoNorm2.py --input-h5ad repeatMoreCells/split2_count_data.h5ad --input-perturbation-matrix repeatMoreCells/split2_perturbation_design.csv --control-perturbation-name Control --out repeatMoreCells/split2normal --covariates total_counts --compute-pval --num-perms 10000 --rank 26 --lambda1 0.6 --lambda2 2.0')
+
+
+
+M = pd.read_csv('repeatMoreCells/perturbedtcellsmerfishenoughguides.csv') # cells x genes
+P = pd.read_csv('repeatMoreCells/perturbedTcellsZombieenoughguides.csv', index_col=0) # target x cells
+adata = ad.AnnData(M)
+adata.obs_names = [f"Cell_{i+1:d}" for i in range(adata.n_obs)]
+adata.obs['total_counts'] = adata.X.sum(1)
+adata.write('repeatMoreCells/count_data.h5ad')
+num_cells = M.shape[0]
+idx_sort = np.argsort(np.random.random(num_cells))
+idx1 = idx_sort[:int(num_cells/2)]
+dir="repeatMoreCells"
+idx2 = idx_sort[len(idx1):]
+write_data_subset_nocovs(idx1,'%s/split1_' % dir)
+write_data_subset_nocovs(idx2,'%s/split2_' % dir)
+_=os.system('python ./run_FR_PerturbnoNorm2.py --input-h5ad repeatMoreCells/split1_count_data.h5ad --input-perturbation-matrix repeatMoreCells/split1_perturbation_design.csv --control-perturbation-name Control --out repeatMoreCells/split1tcells --covariates total_counts --compute-pval --num-perms 10000 --rank 20 --lambda1 0.1 --lambda2 0.0')
+_=os.system('python ./run_FR_PerturbnoNorm2.py --input-h5ad repeatMoreCells/split2_count_data.h5ad --input-perturbation-matrix repeatMoreCells/split2_perturbation_design.csv --control-perturbation-name Control --out repeatMoreCells/split2tcells --covariates total_counts --compute-pval --num-perms 10000 --rank 20 --lambda1 0.1 --lambda2 0.0')
+
+
+M = pd.read_csv('repeatMoreCells/perturbedtcellsmerfishenoughguidesLESSGENES.csv') # cells x genes
+P = pd.read_csv('repeatMoreCells/perturbedTcellsZombieenoughguides.csv', index_col=0) # target x cells
+
+adata = ad.AnnData(M)
+adata.obs_names = [f"Cell_{i+1:d}" for i in range(adata.n_obs)]
+adata.obs['total_counts'] = adata.X.sum(1)
+adata.write('repeatMoreCells/count_data.h5ad')
+
+P.to_csv('repeatMoreCells/perturbation_design.csv',sep=' ')
+num_cells = M.shape[0]
+idx_sort = np.argsort(np.random.random(num_cells))
+idx1 = idx_sort[:int(num_cells/2)]
+idx2 = idx_sort[len(idx1):]
+write_data_subset_nocovs(idx1,'repeatMoreCells/split1_')
+write_data_subset_nocovs(idx2,'repeatMoreCells/split2_')
+_=os.system('python ./run_FR_PerturbnoNorm2.py --input-h5ad repeatMoreCells/split1_count_data.h5ad --input-perturbation-matrix repeatMoreCells/split1_perturbation_design.csv --control-perturbation-name Control --out repeatMoreCells/split1 --covariates total_counts --compute-pval --num-perms 10000 --rank 20 --lambda1 0.0 --lambda2 2.0')
+_=os.system('python ./run_FR_PerturbnoNorm2.py --input-h5ad repeatMoreCells/split2_count_data.h5ad --input-perturbation-matrix repeatMoreCells/split2_perturbation_design.csv --control-perturbation-name Control --out repeatMoreCells/split2 --covariates total_counts --compute-pval --num-perms 10000 --rank 20 --lambda1 0.0 --lambda2 2.0')
+
+_=os.system('python ./run_FR_PerturbnoNorm2.py --input-h5ad repeatMoreCells/count_data.h5ad --input-perturbation-matrix repeatMoreCells/perturbation_design.csv --control-perturbation-name Control --out repeatMoreCells/tcellsperturbed --covariates total_counts --compute-pval --num-perms 10000 --rank 20 --lambda1 0.0 --lambda2 2.0')
+
+P.to_csv('repeatMoreCells/perturbation_design.csv',sep=' ')
+num_cells = M.shape[0]
+idx_sort = np.argsort(np.random.random(num_cells))
+idx1 = idx_sort[:int(num_cells/2)]
+idx2 = idx_sort[len(idx1):]
+write_data_subset_nocovs(idx1,'repeatMoreCells/split1_')
+write_data_subset_nocovs(idx2,'repeatMoreCells/split2_')
+_=os.system('python ./run_FR_PerturbnoNorm2.py --input-h5ad repeatMoreCells/split1_count_data.h5ad --input-perturbation-matrix repeatMoreCells/split1_perturbation_design.csv --control-perturbation-name Control --out repeatMoreCells/split1L20 --covariates total_counts --compute-pval --num-perms 10000 --rank 20 --lambda1 0.0 --lambda2 0.0')
+_=os.system('python ./run_FR_PerturbnoNorm2.py --input-h5ad repeatMoreCells/split2_count_data.h5ad --input-perturbation-matrix repeatMoreCells/split2_perturbation_design.csv --control-perturbation-name Control --out repeatMoreCells/split2L20 --covariates total_counts --compute-pval --num-perms 10000 --rank 20 --lambda1 0.0 --lambda2 0.0')
+_=os.system('python ./run_FR_PerturbnoNorm2.py --input-h5ad repeatMoreCells/count_data.h5ad --input-perturbation-matrix repeatMoreCells/perturbation_design.csv --control-perturbation-name Control --out repeatMoreCells/tcellsperturbedL20 --covariates total_counts --compute-pval --num-perms 10000 --rank 20 --lambda1 0.0 --lambda2 0.0')
+
+
+
+
+M = pd.read_csv('repeatMoreCells/allperturbedtcellsmerfish.csv') # cells x genes
+P = pd.read_csv('repeatMoreCells/allperturbedtcellszombieonlycontrol.csv', index_col=0) # target x cells
+
+adata = ad.AnnData(M)
+adata.obs_names = [f"Cell_{i+1:d}" for i in range(adata.n_obs)]
+adata.obs['total_counts'] = adata.X.sum(1)
+adata.write('repeatMoreCells/count_data.h5ad')
+P.to_csv('repeatMoreCells/perturbation_design.csv',sep=' ')
+_=os.system('python ./run_FR_PerturbnoNorm2.py --input-h5ad repeatMoreCells/count_data.h5ad --input-perturbation-matrix repeatMoreCells/perturbation_design.csv --control-perturbation-name Control --out repeatMoreCells/allperturbedtcellszombieonlycontrol --covariates total_counts --compute-pval --num-perms 10000 --rank 20 --lambda1 0.0 --lambda2 2.0')
+
+M = pd.read_csv('repeatMoreCells/perturbedtcellsmerfishnotzone1.csv') # cells x genes
+P = pd.read_csv('repeatMoreCells/perturbedtcellszombieonlycontrolnotzone1.csv', index_col=0) # target x cells
+
+
+Corr_1nonorm = defaultdict(list)
+Corr_bothnonorm = defaultdict(list)
+
+for rank in np.arange(14,22,2):
+	for _ in range(3):
+		run_random_split_withoutnorm('tumordata',rank=rank)
+		res = check_consistency('tumordata')
+		Corr_1nonorm[rank].append(res[0])
+		Corr_bothnonorm[rank].append(res[1])
+
+for key in Corr_1nonorm.keys():
+	print(key,np.average(Corr_1nonorm[key]),np.average(Corr_bothnonorm[key]))
+
+Corr_1L2nonorm = defaultdict(list)
+Corr_bothL2nonorm = defaultdict(list)
+
+for lambda2 in np.arange(0,3,0.5):
+	for _ in range(3):
+		run_random_split_withoutnormlambda('tumordata',lambda2=lambda2)
+		res = check_consistency('tumordata')
+		Corr_1L2nonorm[lambda2].append(res[0])
+		Corr_bothL2nonorm[lambda2].append(res[1])
+
+for key in Corr_1L2nonorm.keys():
+	print(key,np.average(Corr_1L2nonorm[key]),np.average(Corr_bothL2nonorm[key]))
+
+
+
+M = pd.read_csv('repeatMoreCells/perturbedtcellsmerfishnotzone1.csv') # cells x genes
+P = pd.read_csv('repeatMoreCells/perturbedtcellszombieonlycontrolnotzone1.csv', index_col=0) # target x cells
+adata = ad.AnnData(M)
+adata.obs_names = [f"Cell_{i+1:d}" for i in range(adata.n_obs)]
+adata.obs['total_counts'] = adata.X.sum(1)
+adata.write('repeatMoreCells/count_data.h5ad')
+P.to_csv('repeatMoreCells/perturbation_design.csv',sep=' ')
+_=os.system('python ./run_FR_PerturbnoNorm2.py --input-h5ad repeatMoreCells/count_data.h5ad --input-perturbation-matrix repeatMoreCells/perturbation_design.csv --control-perturbation-name Control --out repeatMoreCells/notzone1 --covariates total_counts --compute-pval --num-perms 10000 --rank 20 --lambda1 0.0 --lambda2 0.0')
+
+M = pd.read_csv('repeatMoreCells/perturbedtcellsmerfishnotzone2.csv') # cells x genes
+P = pd.read_csv('repeatMoreCells/perturbedtcellszombieonlycontrolnotzone2.csv', index_col=0) # target x cells
+
+adata = ad.AnnData(M)
+adata.obs_names = [f"Cell_{i+1:d}" for i in range(adata.n_obs)]
+adata.obs['total_counts'] = adata.X.sum(1)
+adata.write('repeatMoreCells/count_data.h5ad')
+P.to_csv('repeatMoreCells/perturbation_design.csv',sep=' ')
+_=os.system('python ./run_FR_PerturbnoNorm2.py --input-h5ad repeatMoreCells/count_data.h5ad --input-perturbation-matrix repeatMoreCells/perturbation_design.csv --control-perturbation-name Control --out repeatMoreCells/notzone2 --covariates total_counts --compute-pval --num-perms 10000 --rank 20 --lambda1 0.0 --lambda2 0.0')
+M = pd.read_csv('repeatMoreCells/perturbedtcellsmerfishscattered.csv') # cells x genes
+P = pd.read_csv('repeatMoreCells/perturbedtcellszombieonlycontrolscattered.csv', index_col=0) # target x cells
+
+adata = ad.AnnData(M)
+adata.obs_names = [f"Cell_{i+1:d}" for i in range(adata.n_obs)]
+adata.obs['total_counts'] = adata.X.sum(1)
+adata.write('repeatMoreCells/count_data.h5ad')
+P.to_csv('repeatMoreCells/perturbation_design.csv',sep=' ')
+_=os.system('python ./run_FR_PerturbnoNorm2.py --input-h5ad repeatMoreCells/count_data.h5ad --input-perturbation-matrix repeatMoreCells/perturbation_design.csv --control-perturbation-name Control --out repeatMoreCells/scattered --covariates total_counts --compute-pval --num-perms 10000 --rank 20 --lambda1 0.0 --lambda2 0.0')
+
+
+M = pd.read_csv('repeatMoreCells/allperturbedtcellsmerfish.csv') # cells x genes
+P = pd.read_csv('repeatMoreCells/allperturbedtcellszombieonlycontrol.csv', index_col=0) # target x cells
+
+adata = ad.AnnData(M)
+adata.obs_names = [f"Cell_{i+1:d}" for i in range(adata.n_obs)]
+adata.obs['total_counts'] = adata.X.sum(1)
+adata.write('repeatMoreCells/count_data.h5ad')
+P.to_csv('repeatMoreCells/perturbation_design.csv',sep=' ')
+
+num_cells = M.shape[0]
+idx_sort = np.argsort(np.random.random(num_cells))
+idx1 = idx_sort[:int(num_cells/2)]
+idx2 = idx_sort[len(idx1):]
+write_data_subset_nocovs(idx1,'repeatMoreCells/split1_')
+write_data_subset_nocovs(idx2,'repeatMoreCells/split2_')
+_=os.system('python ./run_FR_PerturbnoNorm2.py --input-h5ad repeatMoreCells/split1_count_data.h5ad --input-perturbation-matrix repeatMoreCells/split1_perturbation_design.csv --control-perturbation-name Control --out repeatMoreCells/split1all --covariates total_counts --compute-pval --num-perms 10000 --rank 20 --lambda1 0.0 --lambda2 0.0')
+_=os.system('python ./run_FR_PerturbnoNorm2.py --input-h5ad repeatMoreCells/split2_count_data.h5ad --input-perturbation-matrix repeatMoreCells/split2_perturbation_design.csv --control-perturbation-name Control --out repeatMoreCells/split2all --covariates total_counts --compute-pval --num-perms 10000 --rank 20 --lambda1 0.0 --lambda2 0.0')
+_=os.system('python ./run_FR_PerturbnoNorm2.py --input-h5ad repeatMoreCells/count_data.h5ad --input-perturbation-matrix repeatMoreCells/perturbation_design.csv --control-perturbation-name Control --out repeatMoreCells/allimmune --covariates total_counts --compute-pval --num-perms 10000 --rank 20 --lambda1 0.0 --lambda2 0.0')
+
